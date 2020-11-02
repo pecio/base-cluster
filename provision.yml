@@ -1,0 +1,74 @@
+---
+- name: Prerrequisitos cluster
+  hosts: all
+  become: True
+  tasks:
+    - name: Habilitar chronyd
+      systemd:
+        name: chronyd
+        state: started
+        enabled: True
+    - name: Zona horaria
+      timezone:
+        name: Europe/Madrid
+    - name: Quitar nombre de /etc/hosts para que no resuelva 127.0.0.1
+      lineinfile:
+        path: /etc/hosts
+        regexp: '{{ ansible_hostname }}'
+        state: absent
+    - name: Inhabilitar firewalld
+      systemd:
+          name: firewalld.service
+          enabled: False
+          state: stopped
+    - name: Software
+      yum:
+        name:
+          - pcs
+          - pacemaker
+          - fence-agents-sbd
+          - lvm2-cluster
+          - gfs2-utils
+          - sbd
+          - watchdog
+    - name: Password hacluster
+      user:
+        name: hacluster
+        password: '{{ "highavailability" | password_hash("sha512") }}'
+        update_password: always
+    - name: Habilitar pcsd
+      systemd:
+        name: pcsd.service
+        enabled: True
+        state: started
+    - name: Cargar modulo softdog
+      modprobe:
+        name: softdog
+    - name: Habilitar modulo softdog en arranque
+      lineinfile:
+        path: /etc/modules-load.d/softdog.conf
+        line: softdog
+        create: True
+    - name: Habilitar carga de modulos en el arranque
+      systemd:
+        name: systemd-modules-load.service
+        enabled: True
+    - name: Configurar watchdog
+      lineinfile:
+        path: /etc/watchdog.d/device.conf
+        line: "watchdog-device = /dev/watchdog"
+        create: True
+    - name: Habilitar watchdog-ping
+      systemd:
+        name: watchdog-ping.service
+        enabled: True
+        state: started
+    - name: Puntos de montaje
+      file:
+        state: directory
+        mode: '0755'
+        path: '{{ item }}'
+      loop:
+        - /data
+        - /jaula
+...
