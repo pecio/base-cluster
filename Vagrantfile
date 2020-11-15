@@ -16,9 +16,12 @@ Vagrant.configure("2") do |config|
                 libvirt.storage :file, :size => '1G', :path => 'base-cluster_data_shared.raw', :allow_existing => true, :shareable => true, :type => :raw
             end
 
-            server.vm.provision :ansible do |ansible|
-                ansible.playbook = 'provision.yml'
-                ansible.compatibility_mode = '2.0'
+            if i == 2
+                server.vm.provision :ansible do |ansible|
+                    ansible.limit = "all"
+                    ansible.playbook = 'provision.yml'
+                    ansible.compatibility_mode = '2.0'
+                end
             end
         end
     end
