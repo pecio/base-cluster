@@ -1,8 +1,6 @@
 # -*- mode: ruby -*-
 # vi: set ft=ruby :
 
-ENV['VAGRANT_NO_PARALLEL'] = 'yes'
-
 Vagrant.configure("2") do |config|
     (1..2).each do |i|
         config.vm.define "server#{i}" do |server|
