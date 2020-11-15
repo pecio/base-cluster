@@ -1,2 +1,62 @@
 ---
-# tasks file for base-cluster
+- name: Enable chronyd
+  systemd:
+    name: chronyd
+    state: started
+    enabled: True
+- name: Time zone
+  timezone:
+    name: Europe/Madrid
+- name: Remove name from /etc/hosts so it does not resolve 127.0.0.1
+  lineinfile:
+    path: /etc/hosts
+    regexp: '{{ ansible_hostname }}'
+    state: absent
+- name: Disable firewalld
+  systemd:
+      name: firewalld.service
+      enabled: False
+      state: stopped
+- name: Software packages
+  yum:
+    name:
+      - pcs
+      - pacemaker
+      - fence-agents-sbd
+      - lvm2-cluster
+      - gfs2-utils
+      - sbd
+      - watchdog
+- name: Password for hacluster
+  user:
+    name: hacluster
+    password: '{{ "highavailability" | password_hash("sha512") }}'
+    update_password: always
+- name: Enable pcsd
+  systemd:
+    name: pcsd.service
+    enabled: True
+    state: started
+- name: Load softdog module
+  modprobe:
+    name: softdog
+- name: Enable softdog module on boot
+  lineinfile:
+    path: /etc/modules-load.d/softdog.conf
+    line: softdog
+    create: True
+- name: Enable module loading on boot
+  systemd:
+    name: systemd-modules-load.service
+    enabled: True
+- name: Configure watchdog
+  lineinfile:
+    path: /etc/watchdog.d/device.conf
+    line: "watchdog-device = /dev/watchdog"
+    create: True
+- name: Enable watchdog-ping
+  systemd:
+    name: watchdog-ping.service
+    enabled: True
+    state: started
+...
