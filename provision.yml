@@ -1,27 +1,27 @@
 ---
-- name: Prerrequisitos cluster
+- name: Cluster requisites
   hosts: all
   become: True
   tasks:
-    - name: Habilitar chronyd
+    - name: Enable chronyd
       systemd:
         name: chronyd
         state: started
         enabled: True
-    - name: Zona horaria
+    - name: Time zone
       timezone:
         name: Europe/Madrid
-    - name: Quitar nombre de /etc/hosts para que no resuelva 127.0.0.1
+    - name: Remove name from /etc/hosts so it does not resolve 127.0.0.1
       lineinfile:
         path: /etc/hosts
         regexp: '{{ ansible_hostname }}'
         state: absent
-    - name: Inhabilitar firewalld
+    - name: Disable firewalld
       systemd:
           name: firewalld.service
           enabled: False
           state: stopped
-    - name: Software
+    - name: Software packages
       yum:
         name:
           - pcs
@@ -31,39 +31,39 @@
           - gfs2-utils
           - sbd
           - watchdog
-    - name: Password hacluster
+    - name: Password for hacluster
       user:
         name: hacluster
         password: '{{ "highavailability" | password_hash("sha512") }}'
         update_password: always
-    - name: Habilitar pcsd
+    - name: Enable pcsd
       systemd:
         name: pcsd.service
         enabled: True
         state: started
-    - name: Cargar modulo softdog
+    - name: Load softdog module
       modprobe:
         name: softdog
-    - name: Habilitar modulo softdog en arranque
+    - name: Enable softdog module on boot
       lineinfile:
         path: /etc/modules-load.d/softdog.conf
         line: softdog
         create: True
-    - name: Habilitar carga de modulos en el arranque
+    - name: Enable module loading on boot
       systemd:
         name: systemd-modules-load.service
         enabled: True
-    - name: Configurar watchdog
+    - name: Configure watchdog
       lineinfile:
         path: /etc/watchdog.d/device.conf
         line: "watchdog-device = /dev/watchdog"
         create: True
-    - name: Habilitar watchdog-ping
+    - name: Enable watchdog-ping
       systemd:
         name: watchdog-ping.service
         enabled: True
         state: started
-    - name: Puntos de montaje
+    - name: Mountpoint
       file:
         state: directory
         mode: '0755'
