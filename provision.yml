@@ -63,12 +63,4 @@
         name: watchdog-ping.service
         enabled: True
         state: started
-    - name: Mountpoint
-      file:
-        state: directory
-        mode: '0755'
-        path: '{{ item }}'
-      loop:
-        - /data
-        - /jaula
 ...
