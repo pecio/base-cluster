@@ -12,8 +12,8 @@ Vagrant.configure("2") do |config|
             server.vm.provider :libvirt do |libvirt|
                 libvirt.cpus = 1
                 libvirt.memory = 512
-                libvirt.storage :file, :size => '1G', :path => 'sbd_shared.raw', :allow_existing => true, :shareable => true, :type => :raw
-                libvirt.storage :file, :size => '1G', :path => 'data_shared.raw', :allow_existing => true, :shareable => true, :type => :raw
+                libvirt.storage :file, :size => '1G', :path => 'base-cluster_sbd_shared.raw', :allow_existing => true, :shareable => true, :type => :raw
+                libvirt.storage :file, :size => '1G', :path => 'base-cluster_data_shared.raw', :allow_existing => true, :shareable => true, :type => :raw
             end
 
             server.vm.provision :ansible do |ansible|
