@@ -1,13 +1,13 @@
-CentOS 7 Cluster
-================
+CentOS 7+ Cluster
+=================
 
-This role sets up a Pacemaker cluster based on CentOS 7+, with Storage Based Death used
+This role sets up a Pacemaker cluster based on CentOS 7+, with Storage-Based Death used
 for STONITH.
 
 Requirements
 ------------
 
-* A shared disk to be used for Storage-Based Death
+* At least one shared disk to be used for Storage-Based Death
 
 Role Variables
 --------------
