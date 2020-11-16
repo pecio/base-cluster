@@ -135,7 +135,7 @@
   run_once: True
   when: stonith_config.stdout.find(' sbd (class=stonith type=fence_sbd)') == -1
   command:
-    cmd: '/sbin/pcs stonith create sbd fence_sbd devices={{ sbd_devices | join(";") }}'
+    cmd: '/sbin/pcs stonith create sbd fence_sbd devices={{ sbd_devices | join(",") }}'
   notify:
     - Restart Pacemaker
 ...
