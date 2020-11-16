@@ -13,8 +13,8 @@ Role Variables
 --------------
 All variables are optional
 
-* timezone: Timezone for servers
-* pacemaker_name: Name of the cluster to create, defaults to "CentOSCluster"
+* timezone: Timezone for servers, will not configure if unset.
+* pacemaker_name: Name of the cluster to create, defaults to "CentOSCluster".
 * pacemaker_password: password for the `hacluster` account, used for authenticating
   Pacemaker daemon.
 * sbd_devices: list of block device paths to be used for Storage Based Death (at

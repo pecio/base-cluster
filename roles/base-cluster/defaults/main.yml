@@ -1,6 +1,4 @@
 ---
-# Time Zone
-timezone: Europe/Madrid
 # Cluster name
 pacemaker_name: CentOSCluster
 # Password for hacluster user

@@ -1,6 +1,7 @@
 ---
 # Non Pacemaker specific setup
 - name: Setup clock
+  when: timezone is defined
   block:
     - name: Time zone
       timezone:
