@@ -1,4 +1,4 @@
-# Generic CentOS 7 cluster lab setup
+# Generic CentOS 7/8 cluster lab setup with Storage Based Death
 
 ## Requirements
 
