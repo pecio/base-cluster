@@ -6,7 +6,7 @@
     enabled: True
 - name: Time zone
   timezone:
-    name: Europe/Madrid
+    name: '{{ timezone }}'
 - name: Remove name from /etc/hosts so it does not resolve 127.0.0.1
   lineinfile:
     path: /etc/hosts
@@ -30,7 +30,7 @@
 - name: Password for hacluster
   user:
     name: hacluster
-    password: '{{ "highavailability" | password_hash("sha512") }}'
+    password: '{{ pacemaker.password | password_hash("sha512") }}'
     update_password: always
 - name: Enable pcsd
   systemd:

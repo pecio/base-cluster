@@ -1,2 +1,12 @@
 ---
-# defaults file for base-cluster
+# Time Zone
+timezone: Europe/Madrid
+# Pacemaker
+pacemaker:
+  # Authentication password for hacluster
+  password: highavailability
+# Storage Based Death
+sbd:
+  # Block device name
+  device: /dev/vdb
+...
