@@ -84,20 +84,20 @@
   when: not tokens.stat.exists
   user:
     name: hacluster
-    password: '{{ pacemaker.password | password_hash("sha512") }}'
+    password: '{{ pacemaker_password | password_hash("sha512") }}'
     update_password: always
 - name: Authenticate cluster
   run_once: True
   command:
     # Command is "pcs cluster auth" on CentOS 7 but "pcs host auth" on CentOS 8
     cmd: '/sbin/pcs {% if ansible_distribution_major_version|int == 7 %}cluster{% else %}host{% endif %} auth {{ ansible_play_hosts | join(" ") }} -u hacluster'
-    stdin: '{{ pacemaker.password }}'
+    stdin: '{{ pacemaker_password }}'
     creates: /var/lib/pcsd/tokens
 - name: Create cluster
   run_once: True
   command:
     # Name is optional on CentOS 7 but mandatory on CentOS 8
-    cmd: '/sbin/pcs cluster setup {% if ansible_distribution_major_version|int == 7 %}--name{% endif %} "{{ pacemaker.name }}" {{ ansible_play_hosts | join(" ") }} --enable'
+    cmd: '/sbin/pcs cluster setup {% if ansible_distribution_major_version|int == 7 %}--name{% endif %} "{{ pacemaker_name }}" {{ ansible_play_hosts | join(" ") }} --enable'
     creates: /var/lib/pacemaker/cib/cib.xml
 - name: Start cluster
   pacemaker_cluster:
@@ -112,13 +112,13 @@
   command:
     cmd: '/bin/dd bs=8 count=1 if={{ item }}'
   register: header
-  loop: '{{ sbd.devices }}'
+  loop: '{{ sbd_devices }}'
 - name: Create device headers
   run_once: True
   when: (header.results | selectattr("item", "eq", item) | first)["stdout"] != 'SBD_SBD_'
   command:
     cmd: '/sbin/pcs stonith sbd device setup --force --device={{ item }}'
-  loop: '{{ sbd.devices }}'
+  loop: '{{ sbd_devices }}'
 - name: Enable sbd daemon
   systemd:
     name: sbd.service
@@ -134,7 +134,7 @@
   run_once: True
   when: stonith_config.stdout.find(' sbd (class=stonith type=fence_sbd)') == -1
   command:
-    cmd: '/sbin/pcs stonith create sbd fence_sbd devices={{ sbd.devices | join(";") }}'
+    cmd: '/sbin/pcs stonith create sbd fence_sbd devices={{ sbd_devices | join(";") }}'
   notify:
     - Restart Pacemaker
 ...

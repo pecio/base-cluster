@@ -1,7 +1,7 @@
 # Configured by base-cluster role
 
 # Block devices for communication
-SBD_DEVICE="{{ sbd.devices | join(';') }}"
+SBD_DEVICE="{{ sbd_devices | join(';') }}"
 
 # Start Pacemaker watchers
 SBD_PACEMAKER=yes
