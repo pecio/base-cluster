@@ -1,0 +1,13 @@
+# Configured by base-cluster role
+
+# Block devices for communication
+SBD_DEVICE="{{ sbd.devices | join(';') }}"
+
+# Start Pacemaker watchers
+SBD_PACEMAKER=yes
+
+# Start after fencing (otherwise "clean" to not do so)
+SBD_STARTMODE=always
+
+# Watchdog device for restarting node
+SBD_WATCHDOG_DEV=/dev/watchdog

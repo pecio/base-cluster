@@ -1,2 +1,5 @@
 ---
-# handlers file for base-cluster
+- name: Restart Pacemaker
+  pacemaker_cluster:
+      state: restart
+      node: all

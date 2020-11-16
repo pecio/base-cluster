@@ -10,5 +10,6 @@ pacemaker:
 # Storage Based Death
 sbd:
   # Block device name
-  device: /dev/vdb
+  devices:
+    - /dev/vdb
 ...

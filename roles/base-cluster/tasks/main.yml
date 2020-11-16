@@ -82,4 +82,39 @@
 - name: Start cluster
   pacemaker_cluster:
     state: online
+# Setup Storage Based Death
+- name: Configure sbd daemon
+  template:
+    src: sbd.j2
+    dest: /etc/sysconfig/sbd
+    backup: True
+- name: Check if headers created
+  command:
+    cmd: '/bin/dd bs=8 count=1 if={{ item }}'
+  register: header
+  loop: '{{ sbd.devices }}'
+- name: Create device headers
+  run_once: True
+  when: (header.results | selectattr("item", "eq", item) | first)["stdout"] != 'SBD_SBD_'
+  command:
+    cmd: '/sbin/pcs stonith sbd device setup --force --device={{ item }}'
+  loop: '{{ sbd.devices }}'
+- name: Enable sbd daemon
+  systemd:
+    name: sbd.service
+    enabled: True
+  notify:
+    - Restart Pacemaker
+- name: Check if STONITH SBD resource exists
+  run_once: True
+  command:
+    cmd: '/sbin/pcs config'
+  register: stonith_config
+- name: Create STONITH SBD resource
+  run_once: True
+  when: stonith_config.stdout.find(' sbd (class=stonith type=fence_sbd)') == -1
+  command:
+    cmd: '/sbin/pcs stonith create sbd fence_sbd devices={{ sbd.devices | join(";") }}'
+  notify:
+    - Restart Pacemaker
 ...
