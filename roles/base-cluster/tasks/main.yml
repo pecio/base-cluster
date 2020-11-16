@@ -1,4 +1,5 @@
 ---
+# Non Pacemaker specific setup
 - name: Enable chronyd
   systemd:
     name: chronyd
@@ -17,6 +18,7 @@
       name: firewalld.service
       enabled: False
       state: stopped
+# Pacemaker requisites
 - name: Software packages
   yum:
     name:
@@ -27,16 +29,12 @@
       - gfs2-utils
       - sbd
       - watchdog
-- name: Password for hacluster
-  user:
-    name: hacluster
-    password: '{{ pacemaker.password | password_hash("sha512") }}'
-    update_password: always
 - name: Enable pcsd
   systemd:
     name: pcsd.service
     enabled: True
     state: started
+# Storage Based Death requisites
 - name: Load softdog module
   modprobe:
     name: softdog
@@ -59,4 +57,29 @@
     name: watchdog-ping.service
     enabled: True
     state: started
+# Create cluster
+- name: Check if authenticated
+  stat:
+    path: /var/lib/pcsd/tokens
+  register: tokens
+- name: Password for hacluster
+  when: not tokens.stat.exists
+  user:
+    name: hacluster
+    password: '{{ pacemaker.password | password_hash("sha512") }}'
+    update_password: always
+- name: Authenticate cluster
+  run_once: True
+  command:
+    cmd: '/sbin/pcs cluster auth {{ ansible_play_hosts | join(" ") }} -u hacluster'
+    stdin: '{{ pacemaker.password }}'
+    creates: /var/lib/pcsd/tokens
+- name: Create cluster
+  run_once: True
+  command:
+    cmd: '/sbin/pcs cluster setup --enable --name "{{ pacemaker.name }}" {{ ansible_play_hosts | join(" ") }}'
+    creates: /var/lib/pacemaker/cib/cib.xml
+- name: Start cluster
+  pacemaker_cluster:
+    state: online
 ...

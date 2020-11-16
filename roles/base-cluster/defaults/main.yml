@@ -3,6 +3,8 @@
 timezone: Europe/Madrid
 # Pacemaker
 pacemaker:
+  # Cluster name
+  name: CentOSCluster
   # Authentication password for hacluster
   password: highavailability
 # Storage Based Death
