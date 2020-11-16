@@ -1,13 +1,25 @@
 ---
 # Non Pacemaker specific setup
+- name: Setup clock
+  block:
+    - name: Time zone
+      timezone:
+        hwclock: UTC
+        name: '{{ timezone }}'
+  rescue:
+    - name: Remove /etc/localtime
+      file:
+        path: /etc/localtime
+        state: absent
+    - name: Set time zone again
+      timezone:
+        hwclock: UTC
+        name: '{{ timezone }}'
 - name: Enable chronyd
   systemd:
     name: chronyd
     state: started
     enabled: True
-- name: Time zone
-  timezone:
-    name: '{{ timezone }}'
 - name: Remove name from /etc/hosts so it does not resolve 127.0.0.1
   lineinfile:
     path: /etc/hosts
@@ -19,14 +31,20 @@
       enabled: False
       state: stopped
 # Pacemaker requisites
+- name: Enable HighAvailability repository (CentOS 8)
+  when: ansible_os_family == 'RedHat' and ansible_distribution_major_version|int > 7
+  # yum_repository seems not to be able to enable an existing repository :(
+  lineinfile:
+    path: /etc/yum.repos.d/CentOS-HA.repo
+    regexp: 'enabled='
+    line: 'enabled=1'
+    backup: False
 - name: Software packages
-  yum:
+  package:
     name:
       - pcs
       - pacemaker
       - fence-agents-sbd
-      - lvm2-cluster
-      - gfs2-utils
       - sbd
       - watchdog
 - name: Enable pcsd
@@ -71,13 +89,15 @@
 - name: Authenticate cluster
   run_once: True
   command:
-    cmd: '/sbin/pcs cluster auth {{ ansible_play_hosts | join(" ") }} -u hacluster'
+    # Command is "pcs cluster auth" on CentOS 7 but "pcs host auth" on CentOS 8
+    cmd: '/sbin/pcs {% if ansible_distribution_major_version|int == 7 %}cluster{% else %}host{% endif %} auth {{ ansible_play_hosts | join(" ") }} -u hacluster'
     stdin: '{{ pacemaker.password }}'
     creates: /var/lib/pcsd/tokens
 - name: Create cluster
   run_once: True
   command:
-    cmd: '/sbin/pcs cluster setup --enable --name "{{ pacemaker.name }}" {{ ansible_play_hosts | join(" ") }}'
+    # Name is optional on CentOS 7 but mandatory on CentOS 8
+    cmd: '/sbin/pcs cluster setup {% if ansible_distribution_major_version|int == 7 %}--name{% endif %} "{{ pacemaker.name }}" {{ ansible_play_hosts | join(" ") }} --enable'
     creates: /var/lib/pacemaker/cib/cib.xml
 - name: Start cluster
   pacemaker_cluster:
