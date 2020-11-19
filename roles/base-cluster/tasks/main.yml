@@ -21,11 +21,19 @@
     name: chronyd
     state: started
     enabled: True
-- name: Remove name from /etc/hosts so it does not resolve 127.0.0.1
-  lineinfile:
-    path: /etc/hosts
-    regexp: '{{ ansible_hostname }}'
-    state: absent
+- name: Setup /etc/hosts
+  when: setup_etc_hosts
+  block:
+    - name: Remove Vagrant 127.0.1.1 entry from /etc/hosts
+      lineinfile:
+        path: /etc/hosts
+        regexp: '^127\.0\.1\.1\s+{{ ansible_hostname }}'
+        state: absent
+    - name: Cluster nodes in /etc/hosts
+      blockinfile:
+        path: /etc/hosts
+        block: '{{ lookup("template", "hosts.j2") }}'
+        marker: '# {mark} Pacemaker cluster nodes'
 - name: Disable firewalld
   systemd:
       name: firewalld.service

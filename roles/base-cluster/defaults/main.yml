@@ -6,4 +6,5 @@ pacemaker_password: highavailability
 # Storage Based Death block device names
 sbd_devices:
   - /dev/vdb
+setup_etc_hosts: True
 ...

@@ -19,6 +19,7 @@ All variables are optional
   Pacemaker daemon.
 * sbd_devices: list of block device paths to be used for Storage Based Death (at
   least one), defaults to `[/dev/vdb]`.
+* setup_etc_hosts: Set names of nodes in `/etc/hosts`, defaults to True.
 
 Example Playbook
 ----------------
@@ -28,6 +29,7 @@ Example Playbook
         - role: base-cluster
           vars:
             timezone: Europe/Madrid
+            setup_etc_hosts: False
             pacemaker_name: My Cluster
             pacemaker_password: ARandomString
             sbd_devices:
