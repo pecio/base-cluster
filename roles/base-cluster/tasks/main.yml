@@ -99,14 +99,29 @@
   run_once: True
   command:
     # Command is "pcs cluster auth" on CentOS 7 but "pcs host auth" on CentOS 8
-    cmd: '/sbin/pcs {% if ansible_distribution_major_version|int == 7 %}cluster{% else %}host{% endif %} auth {{ ansible_play_hosts | join(" ") }} -u hacluster'
+    cmd: |
+      /sbin/pcs
+      {% if ansible_distribution_major_version|int == 7 %}cluster{% else %}host{% endif %} auth
+      {{ ansible_play_hosts | join(" ") }}
+      -u hacluster
     stdin: '{{ pacemaker_password }}'
     creates: /var/lib/pcsd/tokens
 - name: Create cluster
   run_once: True
   command:
     # Name is optional on CentOS 7 but mandatory on CentOS 8
-    cmd: '/sbin/pcs cluster setup {% if ansible_distribution_major_version|int == 7 %}--name{% endif %} "{{ pacemaker_name }}" {{ ansible_play_hosts | join(" ") }} --enable'
+    cmd: |
+      /sbin/pcs
+      cluster setup 
+      {% if ansible_distribution_major_version|int == 7 %}--name{% endif %} "{{ pacemaker_name }}"
+      {% for host in ansible_play_hosts %}
+      {% if ansible_distribution_major_version|int == 7 or pacemaker_iface is not defined %}
+      {{ host }}
+      {% else %}
+      {{ host }} addr={{ hostvars[host]['ansible_'+pacemaker_iface].ipv4.address }}
+      {% endif %}
+      {% endfor %}
+      --enable
     creates: /var/lib/pacemaker/cib/cib.xml
 - name: Start cluster
   pacemaker_cluster:

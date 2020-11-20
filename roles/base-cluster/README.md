@@ -14,15 +14,17 @@ Role Variables
 All variables are optional
 
 * timezone: Timezone for servers, will not configure if unset.
+* setup_etc_hosts: Set names of nodes in `/etc/hosts`. Defaults to
+  True.
 * pacemaker_name: Name of the cluster to create. Defaults to
   "CentOSCluster".
 * pacemaker_password: password for the `hacluster` account, used for
   authenticating Pacemaker daemon. Defaults to `highavailability`.
-* pacemaker_iface: name of the network interface for communication,
-  will use first available interface if unset.
+* pacemaker_iface: name of the network interface for communication.
+  Will use first available interface if unset. Does not work if using
+  CentOS 7 and `setup_etc_hosts` is False.
 * sbd_devices: list of block device paths to be used for Storage Based
   Death (at least one). Defaults to `[/dev/vdb]`.
-* setup_etc_hosts: Set names of nodes in `/etc/hosts`. Defaults to True.
 
 Example Playbook
 ----------------
