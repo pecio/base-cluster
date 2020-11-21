@@ -102,7 +102,13 @@
     cmd: |
       /sbin/pcs
       {% if ansible_distribution_major_version|int == 7 %}cluster{% else %}host{% endif %} auth
-      {{ ansible_play_hosts | join(" ") }}
+      {%for host in ansible_play_hosts %}
+      {% if ansible_distribution_major_version|int == 7 and setup_etc_hosts and setup_etc_hosts_domain is defined %}
+      {{ host }}.{{ setup_etc_hosts_domain }}
+      {% else %}
+      {{ host }}
+      {% endif %}
+      {% endfor %}
       -u hacluster
     stdin: '{{ pacemaker_password }}'
     creates: /var/lib/pcsd/tokens
@@ -115,11 +121,19 @@
       cluster setup 
       {% if ansible_distribution_major_version|int == 7 %}--name{% endif %} "{{ pacemaker_name }}"
       {% for host in ansible_play_hosts %}
-      {% if ansible_distribution_major_version|int == 7 or pacemaker_iface is not defined %}
-      {{ host }}
-      {% else %}
-      {{ host }} addr={{ hostvars[host]['ansible_'+pacemaker_iface].ipv4.address }}
-      {% endif %}
+          {% if ansible_distribution_major_version|int == 7 %}
+              {% if setup_etc_hosts and setup_etc_hosts_domain is defined %}
+                  {{ host }}.{{ setup_etc_hosts_domain }}
+              {% else %}
+                  {{ host }}
+              {% endif %}
+          {% else %}
+              {% if pacemaker_iface is defined %}
+                  {{ host }} addr={{ hostvars[host]['ansible_'+pacemaker_iface].ipv4.address }}
+              {% else %}
+                  {{ host }}
+              {% endif %}
+          {% endif %}
       {% endfor %}
       --enable
     creates: /var/lib/pacemaker/cib/cib.xml
