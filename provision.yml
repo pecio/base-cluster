@@ -3,5 +3,8 @@
   hosts: all
   become: True
   roles:
-    - base-cluster
+    - role: base-cluster
+      vars:
+        setup_etc_hosts: True
+        setup_etc_hosts_domain: base-cluster
 ...
