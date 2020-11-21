@@ -2,7 +2,7 @@
 {% if setup_etc_hosts_domain is defined %}
 {% set hostname %}{{ h }}.{{ setup_etc_hosts_domain }}{% endset %}
 {% else %}
-{% set hostname %}{{ h }} {{ hostvars[h].ansible_fqdn }}{% endset %}
+{% set hostname %}{{ h }}{% endset %}
 {% endif %}
 {% if pacemaker_iface is defined %}
 {{ hostvars[h]['ansible_'+pacemaker_iface].ipv4.address }} {{ hostname }} # {{ pacemaker_iface }}
