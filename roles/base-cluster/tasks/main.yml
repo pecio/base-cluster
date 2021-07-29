@@ -16,6 +16,10 @@
       timezone:
         hwclock: UTC
         name: '{{ timezone }}'
+- name: Chrony installed
+  package:
+    name: chrony
+    state: present
 - name: Enable chronyd
   systemd:
     name: chronyd
@@ -24,10 +28,10 @@
 - name: Setup /etc/hosts
   when: setup_etc_hosts
   block:
-    - name: Remove Vagrant 127.0.1.1 entry from /etc/hosts
+    - name: Remove Vagrant 127.0.[12].1 entry from /etc/hosts
       lineinfile:
         path: /etc/hosts
-        regexp: '^127\.0\.1\.1\s+{{ ansible_hostname }}'
+        regexp: '^127\.0\.[12]\.1\s+{{ ansible_hostname }}'
         state: absent
     - name: Cluster nodes in /etc/hosts
       blockinfile:
@@ -35,6 +39,7 @@
         block: '{{ lookup("template", "hosts.j2") }}'
         marker: '# {mark} Pacemaker cluster nodes'
 - name: Disable firewalld
+  when: ansible_os_family == 'RedHat'
   systemd:
       name: firewalld.service
       enabled: False
@@ -53,7 +58,7 @@
     name:
       - pcs
       - pacemaker
-      - fence-agents-sbd
+      - "{% if ansible_os_family == 'RedHat' %}fence-agents-sbd{% else %}fence-agents{% endif %}"
       - sbd
       - watchdog
 - name: Enable pcsd
@@ -79,12 +84,34 @@
     path: /etc/watchdog.d/device.conf
     line: "watchdog-device = /dev/watchdog"
     create: True
-- name: Enable watchdog-ping
+- name: watchdog.service override directory (Debian)
+  when: ansible_os_family == 'Debian'
+  file:
+    path: /etc/systemd/system/watchdog.service.d
+    state: directory
+- name: Parametrize watchdog.service (Debian)
+  when: ansible_os_family == 'Debian'
+  copy:
+    src: watchdog.service.override.conf
+    dest: /etc/systemd/system/watchdog.service.d/override.conf
+- name: Enable watchdog
   systemd:
-    name: watchdog-ping.service
+    name: "{% if ansible_os_family == 'RedHat' %}watchdog-ping.service{% else %}watchdog.service{% endif %}"
     enabled: True
     state: started
 # Create cluster
+- name: Check for Debian default configuration
+  when: ansible_os_family == 'Debian'
+  lineinfile:
+    path: /etc/corosync/corosync.conf
+    regexp: 'ring0_addr: 127\.0\.0\.1'
+    state: absent
+  check_mode: True
+  register: corosync_default
+- name: Remove Debian default configuration
+  command:
+    cmd: /sbin/pcs cluster destroy
+  when: corosync_default.changed
 - name: Check if authenticated
   stat:
     path: /var/lib/pcsd/tokens
@@ -98,13 +125,17 @@
 - name: Authenticate cluster
   run_once: True
   command:
-    # Command is "pcs cluster auth" on CentOS 7 but "pcs host auth" on CentOS 8
+    # Command is "pcs cluster auth" on CentOS 7 but "pcs host auth" on CentOS 8 and DEbian
     cmd: |
       /sbin/pcs
       {% if ansible_distribution_major_version|int == 7 %}cluster{% else %}host{% endif %} auth
-      {%for host in ansible_play_hosts %}
-      {% if ansible_distribution_major_version|int == 7 and setup_etc_hosts and setup_etc_hosts_domain is defined %}
+      {% for host in ansible_play_hosts %}
+      {% if setup_etc_hosts and setup_etc_hosts_domain is defined %}
+      {% if ansible_distribution_major_version|int == 7 %}
       {{ host }}.{{ setup_etc_hosts_domain }}
+      {% else %}
+      {{ host }} addr={{ host }}.{{ setup_etc_hosts_domain }}
+      {% endif %}
       {% else %}
       {{ host }}
       {% endif %}
@@ -115,7 +146,7 @@
 - name: Create cluster
   run_once: True
   command:
-    # Name is optional on CentOS 7 but mandatory on CentOS 8
+    # Name is optional on CentOS 7 but mandatory on CentOS 8 and Debian
     cmd: |
       /sbin/pcs
       cluster setup 
@@ -144,7 +175,7 @@
 - name: Configure sbd daemon
   template:
     src: sbd.j2
-    dest: /etc/sysconfig/sbd
+    dest: "/etc/{% if ansible_os_family == 'RedHat' %}sysconfig{% else %}default{% endif %}/sbd"
     backup: True
 - name: Check if headers created
   command:
