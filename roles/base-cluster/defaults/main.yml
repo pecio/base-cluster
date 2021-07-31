@@ -1,6 +1,6 @@
 ---
 # Cluster name
-pacemaker_name: CentOSCluster
+pacemaker_name: BaseCluster
 # Password for hacluster user
 pacemaker_password: highavailability
 # Storage Based Death block device names
