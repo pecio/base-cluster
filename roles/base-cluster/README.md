@@ -1,8 +1,8 @@
-CentOS 7+ Cluster
-=================
+SBD Backed Cluster
+==================
 
-This role sets up a Pacemaker cluster based on CentOS 7+, with Storage-Based Death used
-for STONITH.
+This role sets up a Pacemaker cluster based on CentOS 7+ or Debian 9+,
+with Storage-Based Death used for STONITH.
 
 Requirements
 ------------
@@ -11,16 +11,16 @@ Requirements
 
 Role Variables
 --------------
-All variables are optional
+All variables are optional.
 
 * timezone: Timezone for servers, will not configure if unset.
 * setup_etc_hosts: Set names of nodes in `/etc/hosts`. Defaults to
   False.
 * setup_etc_hosts_domain: Domain name to add to entries on
-  `/etc/hosts`. Defaults to empt, highly recommended if
+  `/etc/hosts`. Defaults to empty, highly recommended if
   setup_etc_hosts is true.
 * pacemaker_name: Name of the cluster to create. Defaults to
-  "CentOSCluster".
+  "BaseCluster".
 * pacemaker_password: password for the `hacluster` account, used for
   authenticating Pacemaker daemon. Defaults to `highavailability`.
 * pacemaker_iface: name of the network interface for communication.
