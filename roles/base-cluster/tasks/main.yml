@@ -114,7 +114,8 @@
             endif
           %}/sbin/pcs"
     oldsyntax: "{%
-                  if (ansible_os_family == 'RedHat' and ansible_distribution_major_version|int < 8)
+                  if (ansible_distribution == 'CentOS' and ansible_distribution_major_version|int < 8)
+                  or (ansible_distribution == 'Fedora' and ansible_distribution_major_version|int < 29)
                   or (ansible_distribution == 'Debian' and ansible_distribution_major_version|int < 10)
                   or (ansible_distribution == 'Ubuntu' and ansible_distribution_major_version|int < 20)
                 %}True{%
