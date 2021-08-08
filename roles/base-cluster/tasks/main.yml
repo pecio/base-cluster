@@ -46,10 +46,10 @@
       state: stopped
 # Pacemaker requisites
 - name: Enable HighAvailability repository (CentOS 8)
-  when: ansible_os_family == 'RedHat' and ansible_distribution_major_version|int > 7
+  when: ansible_distribution == 'CentOS' and ansible_distribution_major_version|int > 7
   # yum_repository seems not to be able to enable an existing repository :(
   lineinfile:
-    path: /etc/yum.repos.d/CentOS-HA.repo
+    path: /etc/yum.repos.d/CentOS-Linux-HighAvailability.repo
     regexp: 'enabled='
     line: 'enabled=1'
     backup: False
