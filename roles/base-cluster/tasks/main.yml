@@ -25,6 +25,11 @@
     name: chronyd
     state: started
     enabled: True
+- name: Python SELinux bindings
+  package:
+    name: libselinux-python
+    state: present
+  when: ansible_os_family == 'RedHat'
 - name: Setup /etc/hosts
   when: setup_etc_hosts
   block:
