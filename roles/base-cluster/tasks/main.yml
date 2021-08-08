@@ -100,14 +100,20 @@
     enabled: True
     state: started
 # Create cluster
-- name: Set pcs path
+- name: Set pcs path and syntax variant
   set_fact:
-    pcs: "{% if ansible_os_family == 'Debian' and ansible_distribution_major_version|int < 10 %}/usr{% endif %}/sbin/pcs"
+    pcs: "{%
+            if (ansible_distribution == 'Debian' and ansible_distribution_major_version|int < 10)
+            or (ansible_distribution == 'Ubuntu' and ansible_distribution_major_version|int < 19)
+          %}/usr{%
+            endif
+          %}/sbin/pcs"
+    oldsyntax: (ansible_os_family == 'RedHat' and ansible_distribution_major_version|int < 8) or (ansible_distribution == 'Debian' and ansible_distribution_major_version|int < 10)
 - name: Check for Debian default configuration
   when: ansible_os_family == 'Debian'
   lineinfile:
     path: /etc/corosync/corosync.conf
-    regexp: '{% if ansible_distribution_major_version|int < 10 %}bindnetaddr{% else %}ring0_addr{% endif %}: 127\.0\.0\.1'
+    regexp: '{% if oldsyntax|bool %}bindnetaddr{% else %}ring0_addr{% endif %}: 127\.0\.0\.1'
     state: absent
   check_mode: True
   register: corosync_default
@@ -132,8 +138,7 @@
     # but "pcs host auth" on CentOS 8 and Debian 10
     cmd: |
       {{ pcs }}
-      {% if (ansible_os_family == 'RedHat' and ansible_distribution_major_version|int == 7)
-         or (ansible_os_family == 'Debian' and ansible_distribution_major_version|int < 10) %}
+      {% if oldsyntax|bool %}
           cluster
       {% else %}
           host
@@ -141,8 +146,7 @@
       auth
       {% for host in ansible_play_hosts %}
           {% if setup_etc_hosts and setup_etc_hosts_domain is defined %}
-              {% if (ansible_os_family == 'RedHat' and ansible_distribution_major_version|int == 7)
-                 or (ansible_os_family == 'Debian' and ansible_distribution_major_version|int < 10) %}
+              {% if oldsyntax|bool %}
                   {{ host }}.{{ setup_etc_hosts_domain }}
               {% else %}
                   {{ host }} addr={{ host }}.{{ setup_etc_hosts_domain }}
@@ -161,12 +165,10 @@
     cmd: |
       {{ pcs }}
       cluster setup 
-      {% if (ansible_os_family == 'RedHat' and ansible_distribution_major_version|int == 7)
-         or (ansible_os_family == 'Debian' and ansible_distribution_major_version|int < 10) %}--name {% endif %}
+      {% if oldsyntax|bool %}--name {% endif %}
       "{{ pacemaker_name }}"
       {% for host in ansible_play_hosts %}
-          {% if (ansible_os_family == 'RedHat' and ansible_distribution_major_version|int == 7)
-             or (ansible_os_family == 'Debian' and ansible_distribution_major_version|int < 10) %}
+          {% if oldsyntax|bool %}
               {% if setup_etc_hosts and setup_etc_hosts_domain is defined %}
                   {{ host }}.{{ setup_etc_hosts_domain }}
               {% else %}
@@ -187,7 +189,7 @@
     state: online
 # Setup Storage Based Death
 - name: Fix sbd libraries (Debian 9)
-  when: ansible_os_family == 'Debian' and ansible_distribution_major_version|int < 10
+  when: ansible_distribution == 'Debian' and ansible_distribution_major_version|int < 10
   file:
     path: /usr/lib/libpe_status.so.10
     state: link
@@ -207,7 +209,7 @@
   when: (header.results | selectattr("item", "eq", item) | first)["stdout"] != 'SBD_SBD_'
   command:
     cmd: |
-      {% if ansible_os_family == 'Debian' and ansible_distribution_major_version|int < 10 %}
+      {% if ansible_os_family == 'Debian' and oldsyntax|bool %}
           /usr/sbin/sbd -d {{ item }} create
       {% else %}
           {{ pcs }} stonith sbd device setup --force --device={{ item }}
@@ -231,7 +233,7 @@
     cmd: |
       {{ pcs }} stonith create sbd fence_sbd
       devices={{ sbd_devices | join(",") }}
-      {% if ansible_os_family == 'Debian' and ansible_distribution_major_version|int < 10 %}
+      {% if ansible_os_family == 'Debian' and oldsyntax|bool %}
           sbd_path=/usr/sbin/sbd
       {% endif %}
   notify:
