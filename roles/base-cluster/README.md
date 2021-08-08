@@ -1,13 +1,20 @@
 SBD Backed Cluster
 ==================
 
-This role sets up a Pacemaker cluster based on CentOS 7+ or Debian 9+,
-with Storage-Based Death used for STONITH.
+This role sets up a Pacemaker cluster based with Storage-Based Death
+used for STONITH.
 
 Requirements
 ------------
 
 * At least one shared disk to be used for Storage-Based Death
+* Distributions tested:
+  * CentOS 7
+  * CentOS 8
+  * Debian 9
+  * Debian 10
+  * Ubuntu 18.04 LTS
+  * Ubuntu 20.04 LTS
 
 Role Variables
 --------------
