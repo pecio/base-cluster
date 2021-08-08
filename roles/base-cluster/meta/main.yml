@@ -19,6 +19,14 @@ galaxy_info:
     versions:
     - 18.04
     - 20.04
+  - name: Fedora
+    versions:
+    - 28
+    - 29
+    - 31
+    - 32
+    - 33
+    - 34
 
   galaxy_tags:
   - cluster

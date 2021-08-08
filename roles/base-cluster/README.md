@@ -15,6 +15,7 @@ Requirements
   * Debian 10
   * Ubuntu 18.04 LTS
   * Ubuntu 20.04 LTS
+  * Fedora 28-34 except Fedora 30
 
 Role Variables
 --------------
@@ -32,7 +33,8 @@ All variables are optional.
   authenticating Pacemaker daemon. Defaults to `highavailability`.
 * pacemaker_iface: name of the network interface for communication.
   Will use first available interface if unset. Does not work if using
-  CentOS 7 and `setup_etc_hosts` is False.
+  CentOS 7, Debian 9, Ubuntu 18.04 or Fedora 28 and `setup_etc_hosts`
+  is False.
 * sbd_devices: list of block device paths to be used for Storage Based
   Death (at least one). Defaults to `[/dev/vdb]`.
 
