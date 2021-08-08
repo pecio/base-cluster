@@ -233,8 +233,6 @@
   systemd:
     name: sbd.service
     enabled: True
-  notify:
-    - Restart Pacemaker
 - name: Check if STONITH SBD resource exists
   run_once: True
   command:
@@ -250,6 +248,4 @@
       {% if ansible_os_family == 'Debian' and oldsyntax|bool %}
           sbd_path=/usr/sbin/sbd
       {% endif %}
-  notify:
-    - Restart Pacemaker
 ...

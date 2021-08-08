@@ -7,7 +7,7 @@ servers = 2
 Vagrant.configure("2") do |config|
     (1..servers).each do |i|
         config.vm.define "server#{i}" do |server|
-            server.vm.box = "generic/debian10"
+            server.vm.box = "generic/centos8"
             server.vm.hostname = "server#{i}"
 
             server.vm.provider :libvirt do |libvirt|

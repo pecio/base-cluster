@@ -1,6 +1,0 @@
----
-- name: Restart Pacemaker
-  pacemaker_cluster:
-      state: restart
-      node: all
-  when: "ansible_os_family == 'RedHat'"
